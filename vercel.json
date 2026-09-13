@@ -1,0 +1,27 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "http://5.78.148.33:5005/api/:path*"
+    },
+    { "source": "/commands", "destination": "/commands.html" },
+    { "source": "/terminal", "destination": "/terminal.html" },
+    { "source": "/filemanagement", "destination": "/filemanager.html" },
+    { "source": "/login", "destination": "/login.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    },
+    {
+      "source": "/theme.css",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    }
+  ],
+  "cleanUrls": true
+}

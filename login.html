@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>ZACH_CORE | Authentication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        /* panel + input styling now comes from theme.css so this page matches the rest */
+    </style>
+    <link rel="stylesheet" href="/theme.css">
+    <script defer src="/palette.js"></script>
+    <script defer src="/telemetry.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0b0e14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ZACH_CORE">
+    <link rel="apple-touch-icon" href="/icon.svg">
+    <script defer src="/mobile.js"></script>
+</head>
+<body class="bg-[#0b0e14] text-gray-300 min-h-screen flex items-center justify-center p-6 overflow-y-auto">
+
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="w-full max-w-md animate-in fade-in zoom-in duration-500">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 mx-auto bg-indigo-600 rounded-2xl mb-4 shadow-2xl shadow-indigo-500/20 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase">Zach_Core</h1>
+            <p class="text-[10px] text-gray-500 tracking-[0.4em] uppercase mt-2">Central Command Access</p>
+        </div>
+
+        <div class="stat-card p-8 rounded-[2rem] shadow-2xl">
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Identity</label>
+                    <input type="text" id="username" required 
+                        class="w-full bg-[#0d1117] border border-[#30363d] rounded-2xl px-5 py-4 text-white outline-none transition-all focus:border-indigo-500" 
+                        placeholder="Username">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Access_Key</label>
+                    <input type="password" id="pass" required 
+                        class="w-full bg-[#0d1117] border border-[#30363d] rounded-2xl px-5 py-4 text-white outline-none transition-all focus:border-indigo-500" 
+                        placeholder="••••••••">
+                </div>
+
+                <div id="error-msg" class="hidden text-center bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-3">
+                    <p class="text-red-400 text-[10px] font-black uppercase tracking-widest">Access Denied</p>
+                    <p id="error-detail" class="text-red-400/70 text-[9px] mt-1">Invalid credentials</p>
+                </div>
+
+                <button type="submit" 
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs tracking-widest py-5 rounded-2xl transition-all shadow-lg shadow-indigo-900/40 active:scale-[0.98]">
+                    AUTHORIZE_SESSION
+                </button>
+            </form>
+        </div>
+
+        <p class="text-center mt-8 text-[9px] text-gray-600 uppercase tracking-widest font-mono">
+            Secure Encrypted Tunnel: v3.0.1
+        </p>
+    </div>
+
+    <script>
+        // Particle background logic
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function initParticles() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            particles = [];
+            const count = window.innerWidth < 768 ? 25 : 50;
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                    size: Math.random() * 1.2 + 0.3, speedX: (Math.random() - 0.5) * 0.4,
+                    speedY: (Math.random() - 0.5) * 0.4, opacity: Math.random() * 0.3 + 0.1
+                });
+            }
+        }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.speedX; p.y += p.speedY;
+                if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+                ctx.fillStyle = `rgba(99, 102, 241, ${p.opacity})`;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        }
+        window.addEventListener('resize', initParticles);
+        initParticles(); animate();
+
+        // Login Logic
+        const form = document.getElementById('login-form');
+        const errorMsg = document.getElementById('error-msg');
+
+        const btn = form.querySelector('button[type="submit"]');
+        const original = btn.innerText;
+
+        function showError(detail) {
+            document.getElementById('error-detail').innerText = detail;
+            errorMsg.classList.remove('hidden');
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.classList.add('hidden');
+
+            const username = document.getElementById('username').value;
+            const pass = document.getElementById('pass').value;
+
+            btn.disabled = true;
+            btn.innerText = 'AUTHORIZING...';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, pass })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    btn.innerText = 'ACCESS_GRANTED';
+                    window.location.href = '/';
+                } else {
+                    showError(data.message || 'Invalid credentials');
+                }
+            } catch (err) {
+                showError('Could not reach the server');
+            }
+            btn.disabled = false;
+            btn.innerText = original;
+        });
+    </script>
+</body>
+</html>
