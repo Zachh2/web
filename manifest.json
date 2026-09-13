@@ -1,0 +1,14 @@
+{
+  "name": "ZACH_CORE Bot Dashboard",
+  "short_name": "ZACH_CORE",
+  "description": "Facebook bot control panel",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05070d",
+  "theme_color": "#0b0e14",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

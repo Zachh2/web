@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/commands", "destination": "/commands.html" },
+    { "source": "/terminal", "destination": "/terminal.html" },
+    { "source": "/filemanagement", "destination": "/filemanager.html" },
+    { "source": "/login", "destination": "/login.html" }
+  ],
+  "cleanUrls": true
+}
